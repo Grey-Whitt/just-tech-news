@@ -122,17 +122,16 @@ router.put('/:id', withAuth, (req, res) => {
 });
 
 router.delete('/:id', withAuth, (req, res) => {
-    Post.destroy({
-        where: {
-            id: req.params.id
-        }
+    Post.findOne({
+        where: { id: req.params.id },
+        include: [Comment]
     })
-        .then(dbPostData => {
-            if (!dbPostData) {
-                res.status(404).json({ message: 'No post found with this id' });
-                return;
-            }
-            res.json(dbPostData);
+        .then(post => {
+            post.comments.forEach(comment => {
+                comment.destroy();
+            })
+            post.destroy();
+            res.end();
         })
         .catch(err => {
             console.log(err);
